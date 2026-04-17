@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import boto3
 import json
@@ -6,12 +7,18 @@ from io import BytesIO
 from PIL import Image
 from datetime import datetime
 import re
+from dotenv import load_dotenv
 
-# --- AWS CONFIG ---
-REGION = "us-east-1"
+load_dotenv()
+
+# --- AWS CONFIG (values from .env; see .env.example) ---
+REGION = os.environ["AWS_REGION"]
+BEDROCK_MODEL_ID = os.environ["AWS_BEDROCK_MODEL_ID"]
+DYNAMODB_TABLE_NAME = os.environ["DYNAMODB_TABLE_NAME"]
+
 bedrock = boto3.client("bedrock-runtime", region_name=REGION)
 dynamodb = boto3.resource("dynamodb", region_name=REGION)
-table = dynamodb.Table("pure-cycle-leaderboard")
+table = dynamodb.Table(DYNAMODB_TABLE_NAME)
 
 st.set_page_config(page_title="Pure-Cycle AI", page_icon="🌊", layout="wide")
 
@@ -136,7 +143,7 @@ if uploaded_file:
             try:
                 # API Call
                 response = bedrock.invoke_model(
-                    modelId="arn:aws:bedrock:us-east-1:048271427261:inference-profile/global.anthropic.claude-haiku-4-5-20251001-v1:0",
+                    modelId=BEDROCK_MODEL_ID,
                     body=body,
                 )
                 raw_body = response.get("body").read()
